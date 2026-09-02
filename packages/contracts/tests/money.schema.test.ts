@@ -49,6 +49,12 @@ describe('rateSchema', () => {
 
   it('recusa taxa absurda, que quase sempre e percentual mandado sem dividir', () => {
     expect(rateSchema.safeParse(15).success).toBe(false)
+    // 1,79% digitado sem dividir por cem vira 179% ao mes.
+    expect(rateSchema.safeParse(1.79).success).toBe(false)
+  })
+
+  it('aceita a taxa mais alta que o produto simula, o rotativo', () => {
+    expect(rateSchema.parse(0.14)).toBeCloseTo(0.14, 10)
   })
 
   it('recusa NaN', () => {

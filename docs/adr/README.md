@@ -34,3 +34,4 @@ que substitua o anterior e marque o antigo como substituído.
 | [0011](0011-contracts-importa-domain.md)      | `packages/contracts` importa `packages/domain`                        | 2    | aceito |
 | [0012](0012-nuxt-segue-a-arvore-do-agents.md) | O Nuxt e configurado para seguir a arvore do AGENTS.md                | 3    | aceito |
 | [0013](0013-parallax-e-movimento.md)          | Como o movimento foi construido                                       | 4    | aceito |
+| [0014](0014-api-sem-banco-obrigatorio.md)     | A API sobe sem banco e sem chave de modelo                            | 5    | aceito |
