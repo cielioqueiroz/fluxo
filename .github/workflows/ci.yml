@@ -80,7 +80,11 @@ jobs:
 
       - name: Nenhum segredo commitado
         run: |
-          if git grep -nIE '(AIza[0-9A-Za-z_-]{35}|postgres(ql)?://[^ ]*:[^ ]*@)' -- . ':!pnpm-lock.yaml' ':!.github/workflows/ci.yml'; then
+          # Arquivos de exemplo e de teste ficam de fora: e exatamente neles que
+          # credencial de mentira precisa existir, com a forma real, para
+          # documentar o formato e para o schema ser testado. Segredo de verdade
+          # nesses arquivos e pego em revisao, e nao por expressao regular.
+          if git grep -nIE '(AIza[0-9A-Za-z_-]{35}|postgres(ql)?://[^ ]*:[^ ]*@)' -- .                ':!pnpm-lock.yaml' ':!.github/workflows/ci.yml'                ':!*.example' ':!*.test.ts' ':!*.spec.ts'; then
             echo "Segredo aparente encontrado no versionamento. Ver AGENTS.md regra 6."
             exit 1
           fi
