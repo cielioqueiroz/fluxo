@@ -43,16 +43,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
+      # Os pacotes compartilhados sao construidos primeiro porque o lint com
+      # analise por tipo le os `.d.ts` de dist. Sem isso, todo import de
+      # @fluxo/domain vira tipo de erro e o lint acusa 150 falsos positivos.
+      - name: Construir os pacotes compartilhados
+        run: pnpm --filter "./packages/*" build
+
+      - name: tokens.css sincronizado com a fonte
+        run: pnpm --filter @fluxo/tokens tokens:check
+
       - name: Formatacao
         run: pnpm format:check
 
       - name: Lint
         run: pnpm lint
-
-      - name: tokens.css sincronizado com a fonte
-        run: |
-          pnpm --filter @fluxo/tokens build
-          pnpm --filter @fluxo/tokens tokens:check
 
       - name: Tipos
         run: pnpm typecheck
