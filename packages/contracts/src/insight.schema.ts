@@ -90,20 +90,54 @@ export const insightModelOutputSchema = z
 /* O que a API devolve ao front
    ------------------------------------------------------------------------- */
 
-export const insightResponseSchema = z.strictObject({
-  headline: modelText(120),
-  reading: modelText(1200),
-  claims: z.array(claimSchema).max(5),
-  citations: z.array(citationSchema).max(5),
-  /** Aviso de material educativo. Campo do servidor, nunca texto do modelo. */
-  disclaimer: z.string().min(1),
-  promptVersion: z.string().min(1),
-  promptHash: z
+/**
+ * Texto que pode vir vazio, porque a resposta degradada nao tem texto nenhum.
+ *
+ * A proibicao de travessao continua valendo: ela nao depende de haver conteudo.
+ */
+const responseText = (max: number) =>
+  z
     .string()
-    .regex(/^[0-9a-f]{64}$/, 'Hash de prompt precisa ser sha256 em hexadecimal'),
-  /** Verdadeiro quando o modelo falhou e o resumo deterministico tomou o lugar. */
-  degraded: z.boolean(),
-})
+    .max(max)
+    .refine((texto) => !TRAVESSAO.test(texto), 'Travessao proibido, use virgula ou ponto final')
+
+export const insightResponseSchema = z
+  .strictObject({
+    headline: responseText(120),
+    reading: responseText(1200),
+    claims: z.array(claimSchema).max(5),
+    citations: z.array(citationSchema).max(5),
+    /** Aviso de material educativo. Campo do servidor, nunca texto do modelo. */
+    disclaimer: z.string().min(1),
+    promptVersion: z.string().min(1),
+    promptHash: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/, 'Hash de prompt precisa ser sha256 em hexadecimal'),
+    /** Verdadeiro quando o modelo falhou e o resumo deterministico tomou o lugar. */
+    degraded: z.boolean(),
+  })
+  .superRefine((valor, ctx) => {
+    /*
+     * Vazio so e valido quando degradado.
+     *
+     * A resposta degradada nao tem texto porque o front ja tem o resumo
+     * deterministico da Fase 3 e vai mostra-lo. Mas uma resposta que diz nao
+     * estar degradada e vem sem leitura e um defeito, e o schema precisa
+     * distinguir os dois casos.
+     */
+    if (valor.degraded) {
+      return
+    }
+    for (const campo of ['headline', 'reading'] as const) {
+      if (valor[campo].trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          path: [campo],
+          message: 'Resposta nao degradada precisa de texto',
+        })
+      }
+    }
+  })
 
 /* Tipos inferidos
    ------------------------------------------------------------------------- */

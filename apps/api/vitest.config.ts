@@ -16,6 +16,12 @@ export default defineConfig({
         // importa e o comportamento sem banco, que health.test.ts cobre.
         'src/database/drizzle.client.ts',
         'src/database/schema/index.ts',
+        // Chamam rede ou banco de verdade. Exercitar exigiria credencial e
+        // provisionamento, e o comportamento sem eles ja e coberto: o adapter
+        // devolve unavailable, o cache erra a leitura, a busca devolve vazio.
+        'src/modules/llm/gemini.adapter.ts',
+        'src/modules/rag/retrieval.service.ts',
+        'src/modules/rag/ingest/**',
       ],
       reporter: ['text'],
       thresholds: { lines: 80, branches: 80, functions: 80, statements: 80 },

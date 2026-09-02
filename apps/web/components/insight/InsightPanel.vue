@@ -2,9 +2,24 @@
 import type { InsightInput } from '@fluxo/domain'
 import { computed } from 'vue'
 
+import { useInsight } from '~~/composables/useInsight'
 import { formatCurrency, formatPercent, formatTerm } from '~~/lib/format'
 
 const props = defineProps<{ summary: InsightInput }>()
+
+/**
+ * A leitura da IA entra por cima do texto calculado, nunca no lugar dele.
+ *
+ * O endereco da API vem da configuracao publica do Nuxt. Vazio, o botao nao
+ * aparece e a secao continua sendo o resumo deterministico, que e o
+ * comportamento correto e nao um erro.
+ */
+const { apiBase } = useRuntimeConfig().public
+const insight = useInsight(apiBase)
+
+const pedir = (): void => {
+  void insight.request(props.summary)
+}
 
 /**
  * A leitura deterministica.
@@ -58,11 +73,45 @@ const leitura = computed(() => {
       <p v-for="(frase, indice) in leitura" :key="indice" class="prose">{{ frase }}</p>
     </div>
 
-    <p class="insight__pending">
-      <span class="insight__pendingMark" aria-hidden="true">&bull;</span>
-      A leitura escrita pelo agente, com citacao de fonte publica, entra nesta secao na Fase 6. Ate
-      la, o texto acima e calculado, nao gerado.
+    <!--
+      A leitura do agente vem depois do texto calculado, e some sem deixar
+      buraco quando o modelo nao responde. O que esta acima continua na tela em
+      todos os estados.
+    -->
+    <section
+      v-if="insight.state.value === 'pronto' && insight.response.value"
+      class="insight__agent"
+    >
+      <UiLabel>Leitura do agente</UiLabel>
+      <p class="insight__headline">{{ insight.response.value.headline }}</p>
+      <p class="prose">{{ insight.response.value.reading }}</p>
+
+      <ul v-if="insight.response.value.citations.length > 0" class="insight__citations">
+        <InsightCitation
+          v-for="(citacao, indice) in insight.response.value.citations"
+          :key="citacao.url + String(indice)"
+          :citation="citacao"
+          :index="indice"
+        />
+      </ul>
+    </section>
+
+    <p v-else-if="insight.state.value === 'carregando'" class="insight__pending">
+      <span aria-hidden="true">&bull;</span>
+      Escrevendo a leitura. O servidor gratuito pode levar quase um minuto para acordar.
     </p>
+
+    <div v-else-if="apiBase !== ''" class="insight__action">
+      <UiButton variant="ghost" @click="pedir">
+        {{
+          insight.state.value === 'indisponivel' ? 'Tentar de novo' : 'Pedir a leitura do agente'
+        }}
+      </UiButton>
+      <p v-if="insight.state.value === 'indisponivel'" class="insight__pending">
+        <span aria-hidden="true">&bull;</span>
+        O agente nao respondeu. O texto acima continua valendo: ele e calculado, nao gerado.
+      </p>
+    </div>
 
     <p class="insight__notice">
       Material educativo. Nao e recomendacao de produto financeiro. Os valores sao uma simulacao e
@@ -90,6 +139,35 @@ const leitura = computed(() => {
   line-height: 1.45;
   color: var(--color-text-primary);
   max-width: 54ch;
+}
+
+.insight__agent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.insight__headline {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-light);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.insight__citations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  margin-top: var(--space-2);
+}
+
+.insight__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
 }
 
 .insight__pending {

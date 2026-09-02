@@ -26,6 +26,19 @@ export default defineNuxtConfig({
 
   modules: ['@pinia/nuxt', '@tresjs/nuxt'],
 
+  runtimeConfig: {
+    public: {
+      /*
+       * Endereco da API. Vazio de proposito no padrao.
+       *
+       * Sem ele o front nao oferece a leitura do agente e continua completo
+       * com o resumo deterministico, que e o comportamento correto para quem
+       * roda o projeto localmente sem subir a API.
+       */
+      apiBase: '',
+    },
+  },
+
   css: ['~~/assets/css/tokens.css', '~~/assets/css/base.css'],
 
   typescript: {

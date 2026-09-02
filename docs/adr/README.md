@@ -35,3 +35,4 @@ que substitua o anterior e marque o antigo como substituído.
 | [0012](0012-nuxt-segue-a-arvore-do-agents.md) | O Nuxt e configurado para seguir a arvore do AGENTS.md                | 3    | aceito |
 | [0013](0013-parallax-e-movimento.md)          | Como o movimento foi construido                                       | 4    | aceito |
 | [0014](0014-api-sem-banco-obrigatorio.md)     | A API sobe sem banco e sem chave de modelo                            | 5    | aceito |
+| [0015](0015-a-leitura-da-ia.md)               | Como a leitura da IA foi construida                                   | 6    | aceito |

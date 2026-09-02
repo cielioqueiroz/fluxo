@@ -7,10 +7,12 @@ import { RequestIdInterceptor } from './common/interceptors/request-id.intercept
 import { ConfigModule } from './config/config.module.js'
 import { DatabaseModule } from './database/database.module.js'
 import { HealthModule } from './modules/health/health.module.js'
+import { InsightModule } from './modules/insight/insight.module.js'
+import { LlmModule } from './modules/llm/llm.module.js'
 import { SimulationModule } from './modules/simulation/simulation.module.js'
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, HealthModule, SimulationModule],
+  imports: [ConfigModule, DatabaseModule, LlmModule, HealthModule, SimulationModule, InsightModule],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: RequestIdInterceptor },

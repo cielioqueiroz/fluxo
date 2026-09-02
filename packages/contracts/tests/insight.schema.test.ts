@@ -152,4 +152,28 @@ describe('insightResponseSchema', () => {
     const degradada = { ...resposta, claims: [], citations: [], degraded: true }
     expect(insightResponseSchema.parse(degradada).degraded).toBe(true)
   })
+
+  it('degradada pode vir sem texto nenhum, porque nao houve modelo', () => {
+    const vazia = {
+      ...resposta,
+      headline: '',
+      reading: '',
+      claims: [],
+      citations: [],
+      degraded: true,
+    }
+    expect(insightResponseSchema.safeParse(vazia).success).toBe(true)
+  })
+
+  it('mas nao degradada sem texto e defeito, e o schema recusa', () => {
+    const semTexto = { ...resposta, headline: '', reading: '', claims: [], citations: [] }
+    const lida = insightResponseSchema.safeParse(semTexto)
+    expect(lida.success).toBe(false)
+    expect(JSON.stringify(lida.error?.issues)).toContain('precisa de texto')
+  })
+
+  it('nao degradada com texto so de espaco tambem e recusada', () => {
+    const soEspaco = { ...resposta, reading: '   ', claims: [], citations: [] }
+    expect(insightResponseSchema.safeParse(soEspaco).success).toBe(false)
+  })
 })
