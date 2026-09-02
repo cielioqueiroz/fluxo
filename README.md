@@ -8,10 +8,9 @@ e compara estratégias de quitação, sempre com citação de fonte pública.
 A IA é uma camada de interpretação sobre um cálculo determinístico, nunca a
 fonte do número.
 
-> **Estado:** Fases 0 a 3 concluídas. A página existe, calcula no navegador e
-> ainda não tem uma única animação, de propósito: ela precisa parecer boa
-> parada antes de ganhar movimento. Este README acompanha o repositório e é
-> reescrito a cada fase.
+> **Estado:** Fases 0 a 4 concluídas. A página existe, calcula no navegador e
+> tem as quatro camadas de parallax. Sem interface de API ainda. Este README
+> acompanha o repositório e é reescrito a cada fase.
 
 ## Fases
 
@@ -21,7 +20,7 @@ fonte do número.
 | 1    | `packages/domain`, todo o cálculo financeiro                                     | concluída |
 | 2    | `packages/contracts` com Zod e `packages/tokens` gerando o CSS                   | concluída |
 | 3    | `apps/web` estático, seis seções, zero animação                                  | concluída |
-| 4    | Movimento: Lenis, ScrollTrigger, TresJS, shader, movimento reduzido              | a fazer   |
+| 4    | Movimento: Lenis, ScrollTrigger, TresJS, shader, movimento reduzido              | concluída |
 | 5    | `apps/api` em NestJS, Drizzle e Neon                                             | a fazer   |
 | 6    | Agente de leitura, prompts versionados, RAG com pgvector                         | a fazer   |
 | 7    | `packages/mcp-server` com três tools                                             | a fazer   |
@@ -111,12 +110,12 @@ Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
 
 ## Onde ler
 
-| Documento                         | O que é                                                                     |
-| --------------------------------- | --------------------------------------------------------------------------- |
-| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto    |
-| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                  |
-| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                       |
-| [`docs/adr/`](docs/adr/README.md) | As doze decisões de arquitetura e por que as alternativas foram descartadas |
+| Documento                         | O que é                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto     |
+| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                   |
+| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                        |
+| [`docs/adr/`](docs/adr/README.md) | As treze decisões de arquitetura e por que as alternativas foram descartadas |
 
 ## Arquitetura em uma tela
 

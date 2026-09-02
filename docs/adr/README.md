@@ -33,3 +33,4 @@ que substitua o anterior e marque o antigo como substituído.
 | [0010](0010-residuo-na-ultima-parcela.md)     | Resíduo de divisão na última parcela                                  | 1    | aceito |
 | [0011](0011-contracts-importa-domain.md)      | `packages/contracts` importa `packages/domain`                        | 2    | aceito |
 | [0012](0012-nuxt-segue-a-arvore-do-agents.md) | O Nuxt e configurado para seguir a arvore do AGENTS.md                | 3    | aceito |
+| [0013](0013-parallax-e-movimento.md)          | Como o movimento foi construido                                       | 4    | aceito |

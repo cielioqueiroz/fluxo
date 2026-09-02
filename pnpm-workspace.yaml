@@ -6,3 +6,4 @@ packages:
 # E dependencia do Vite, que o Nuxt usa. Sem isso o build do front nao roda.
 onlyBuiltDependencies:
   - esbuild
+  - vue-demi

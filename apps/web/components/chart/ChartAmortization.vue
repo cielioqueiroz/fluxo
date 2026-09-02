@@ -1,10 +1,26 @@
 <script setup lang="ts">
 import { add, largest, type Schedule } from '@fluxo/domain'
-import { computed } from 'vue'
+import { computed, ref, useId } from 'vue'
 
 import { formatCurrency } from '~~/lib/format'
 
 const props = defineProps<{ schedule: Schedule }>()
+
+/**
+ * O retangulo que revela a curva conforme o scroll.
+ *
+ * Fica exposto para a camada 3 escalar por `transform`. Nao usamos
+ * `stroke-dashoffset`, que seria o caminho obvio, porque a secao 5 do
+ * AGENTS.md manda animar apenas `transform` e `opacity`. Escalar o recorte
+ * respeita a regra e da o mesmo desenho progressivo.
+ *
+ * Parado, o retangulo esta em escala cheia, entao a curva aparece inteira sem
+ * nenhum script. E isso que faz o modo de movimento reduzido continuar legivel.
+ */
+const revelador = ref<SVGRectElement | null>(null)
+defineExpose({ revelador })
+
+const clipId = `revelar-${useId()}`
 
 /** O topo da escala, em dinheiro de verdade, para o rotulo acessivel. */
 const tetoEmDinheiro = computed(() =>
@@ -81,20 +97,28 @@ const curvas = computed(() => {
         vector-effect="non-scaling-stroke"
       />
 
-      <polyline
-        :points="curvas.principal"
-        fill="none"
-        stroke="var(--color-text-faint)"
-        stroke-width="1.5"
-        vector-effect="non-scaling-stroke"
-      />
-      <polyline
-        :points="curvas.juros"
-        fill="none"
-        stroke="var(--color-intent-debt)"
-        stroke-width="2"
-        vector-effect="non-scaling-stroke"
-      />
+      <defs>
+        <clipPath :id="clipId">
+          <rect ref="revelador" :x="0" :y="0" :width="LARGURA" :height="ALTURA" />
+        </clipPath>
+      </defs>
+
+      <g :clip-path="`url(#${clipId})`">
+        <polyline
+          :points="curvas.principal"
+          fill="none"
+          stroke="var(--color-text-faint)"
+          stroke-width="1.5"
+          vector-effect="non-scaling-stroke"
+        />
+        <polyline
+          :points="curvas.juros"
+          fill="none"
+          stroke="var(--color-intent-debt)"
+          stroke-width="2"
+          vector-effect="non-scaling-stroke"
+        />
+      </g>
     </svg>
 
     <figcaption class="chart__caption">

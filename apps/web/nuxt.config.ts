@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     dirs: ['../composables', '../stores', '../lib'],
   },
 
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@tresjs/nuxt'],
 
   css: ['~~/assets/css/tokens.css', '~~/assets/css/base.css'],
 
