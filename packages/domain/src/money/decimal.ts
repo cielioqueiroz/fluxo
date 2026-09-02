@@ -24,11 +24,7 @@ export function roundHalfUp(value: number): number {
 
 export const add = (a: Cents, b: Cents): Cents => cents(a + b)
 export const sub = (a: Cents, b: Cents): Cents => cents(a - b)
-export const isZero = (a: Cents): boolean => a === 0
-export const absolute = (a: Cents): Cents => cents(Math.abs(a))
-export const largest = (a: Cents, b: Cents): Cents => (a >= b ? a : b)
 export const smallest = (a: Cents, b: Cents): Cents => (a <= b ? a : b)
-export const compareCents = (a: Cents, b: Cents): -1 | 0 | 1 => (a < b ? -1 : a > b ? 1 : 0)
 
 /**
  * Reparte um total em parcelas iguais e poe o residuo na ultima.

@@ -6,6 +6,7 @@ import {
   cents,
   distributeOverInstallments,
   roundHalfUp,
+  smallest,
   sub,
 } from '../../src/money/decimal.js'
 
@@ -43,6 +44,15 @@ describe('aritmetica', () => {
 
   it('ZERO e zero', () => {
     expect(ZERO).toBe(0)
+  })
+
+  it('smallest devolve o menor dos dois, nos dois sentidos', () => {
+    expect(smallest(cents(100), cents(23))).toBe(23)
+    expect(smallest(cents(23), cents(100))).toBe(23)
+  })
+
+  it('smallest com valores iguais devolve o valor', () => {
+    expect(smallest(cents(50), cents(50))).toBe(50)
   })
 })
 

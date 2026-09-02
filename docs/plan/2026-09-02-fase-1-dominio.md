@@ -79,16 +79,18 @@ function cents(value: number): Cents
 function roundHalfUp(x: number): number
 function add(a: Cents, b: Cents): Cents
 function sub(a: Cents, b: Cents): Cents
-function isZero(a: Cents): boolean
-function absolute(a: Cents): Cents
-function largest(a: Cents, b: Cents): Cents
 function smallest(a: Cents, b: Cents): Cents
-function compareCents(a: Cents, b: Cents): -1 | 0 | 1
 function distributeOverInstallments(total: Cents, parts: number): readonly Cents[]
 ```
 
-Os nomes `absolute`, `largest` e `smallest` evitam colidir com `Math.abs`,
-`Math.max` e `Math.min` quando alguém importa tudo em um namespace.
+`smallest` em vez de `min` para não colidir com `Math.min` quando alguém
+importar tudo em um namespace.
+
+**A superfície é só isto.** A spec listava também `absolute`, `largest`,
+`compareCents` e `isZero`. Nenhum consumidor das tarefas 2 a 13 usa essas
+quatro, então elas não entram. A trava de cobertura de 90% é o que faz essa
+regra valer sozinha: função exportada e não usada derruba a suíte, e a saída
+certa é apagar, não escrever teste para código morto.
 
 - [ ] **Passo 1: escrever os testes que falham**
 
@@ -207,11 +209,7 @@ export function roundHalfUp(value: number): number {
 
 export const add = (a: Cents, b: Cents): Cents => cents(a + b)
 export const sub = (a: Cents, b: Cents): Cents => cents(a - b)
-export const isZero = (a: Cents): boolean => a === 0
-export const absolute = (a: Cents): Cents => cents(Math.abs(a))
-export const largest = (a: Cents, b: Cents): Cents => (a >= b ? a : b)
 export const smallest = (a: Cents, b: Cents): Cents => (a <= b ? a : b)
-export const compareCents = (a: Cents, b: Cents): -1 | 0 | 1 => (a < b ? -1 : a > b ? 1 : 0)
 
 /**
  * Reparte um total em parcelas iguais e poe o residuo na ultima.
@@ -2434,13 +2432,9 @@ Esperado: falha porque `index.ts` ainda só exporta `DOMAIN_READY`
 ```ts
 export {
   ZERO,
-  absolute,
   add,
   cents,
-  compareCents,
   distributeOverInstallments,
-  isZero,
-  largest,
   roundHalfUp,
   smallest,
   sub,
