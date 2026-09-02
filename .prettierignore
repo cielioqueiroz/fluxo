@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+.nuxt/
+.output/
+.nitro/
+pnpm-lock.yaml
+CHANGELOG.md
+
+# Gerado por packages/tokens. A fonte e o TypeScript, nao o CSS.
+apps/web/assets/css/tokens.css
+
+# Especificacao do projeto. Formatacao pertence a quem escreveu.
+AGENTS.md
+PROMPT-fluxo.md
