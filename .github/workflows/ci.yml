@@ -49,6 +49,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: tokens.css sincronizado com a fonte
+        run: |
+          pnpm --filter @fluxo/tokens build
+          pnpm --filter @fluxo/tokens tokens:check
+
       - name: Tipos
         run: pnpm typecheck
 

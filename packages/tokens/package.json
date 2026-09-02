@@ -1,0 +1,25 @@
+{
+  "name": "@fluxo/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fonte unica do design system. Gera tokens.css a partir do TypeScript.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --coverage",
+    "tokens:emit": "node dist/build.js",
+    "tokens:check": "node dist/build.js --check"
+  }
+}

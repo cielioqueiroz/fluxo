@@ -1,0 +1,48 @@
+/*
+ * Gerado por packages/tokens. Nao edite este arquivo a mao.
+ *
+ * A fonte e o TypeScript em packages/tokens/src. Rode `pnpm --filter
+ * @fluxo/tokens tokens:emit` depois de mudar um token.
+ */
+
+:root {
+  --color-bg-base: #0A0A0A;
+  --color-bg-raised: #141414;
+  --color-bg-sunken: #060606;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-text-primary: #EDEDED;
+  --color-text-muted: #8A8A8A;
+  --color-text-faint: #5A5A5A;
+  --color-intent-debt: #C4552F;
+  --color-intent-relief: #6F8F6A;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+  --space-section: 160px;
+  --radius: 4px;
+  --font-display: 'General Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  --text-display: 64px;
+  --text-title: 40px;
+  --text-heading: 24px;
+  --text-body: 16px;
+  --text-small: 13px;
+  --text-label: 11px;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --duration-fast: 120ms;
+  --duration-base: 160ms;
+  --duration-slow: 200ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
