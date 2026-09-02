@@ -103,6 +103,28 @@ describe('cardDebt', () => {
     expect(r.schedule.installments.slice(1).every((l) => l.fees === 0)).toBe(true)
   })
 
+  it('sem rotativo nenhum, a fatura vai direto para o parcelamento', () => {
+    const semRotativo: CardParams = {
+      revolvingCycleLimit: 0,
+      minimumFraction: rate(0.15),
+      iof: null,
+      totalChargeCap: null,
+    }
+    const r = cardDebt(entrada({ params: semRotativo }))
+    expect(r.revolvingEndedAtPeriod).toBeNull()
+    expect(r.schedule.installments[0]?.period).toBe(1)
+    expect(r.schedule.installments.every((l) => l.stage === 'installment')).toBe(true)
+    expect(r.schedule.settled).toBe(true)
+  })
+
+  it('parcelamento sem teto cobra os juros cheios e nunca marca o teto', () => {
+    const semTeto: CardParams = { ...brasilLike, totalChargeCap: null }
+    const r = cardDebt(entrada({ params: semTeto, revolvingRate: rate(0.5) }))
+    expect(r.capReachedAtPeriod).toBeNull()
+    expect(r.schedule.totalInterest).toBeGreaterThan(r.schedule.principal / 2)
+    expect(r.schedule.settled).toBe(true)
+  })
+
   it('numera os periodos em sequencia continua entre os dois estagios', () => {
     const r = cardDebt(entrada())
     expect(r.schedule.installments.map((l) => l.period)).toEqual([
