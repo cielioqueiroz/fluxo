@@ -1,0 +1,26 @@
+{
+  "name": "@fluxo/mcp-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Servidor MCP do Fluxo. Expoe o calculo financeiro como ferramentas.",
+  "bin": {
+    "fluxo-mcp": "./dist/server.js"
+  },
+  "main": "./dist/server.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/server.js",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@fluxo/contracts": "workspace:*",
+    "@fluxo/domain": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.5.4"
+  }
+}

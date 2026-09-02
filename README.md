@@ -8,7 +8,7 @@ e compara estratégias de quitação, sempre com citação de fonte pública.
 A IA é uma camada de interpretação sobre um cálculo determinístico, nunca a
 fonte do número.
 
-> **Estado:** Fases 0 a 6 concluídas. A página existe, calcula no navegador e
+> **Estado:** Fases 0 a 7 concluídas. A página existe, calcula no navegador e
 > tem as quatro camadas de parallax. Sem interface de API ainda. Este README
 > acompanha o repositório e é reescrito a cada fase.
 
@@ -23,20 +23,21 @@ fonte do número.
 | 4    | Movimento: Lenis, ScrollTrigger, TresJS, shader, movimento reduzido              | concluída |
 | 5    | `apps/api` em NestJS, Drizzle e Neon                                             | concluída |
 | 6    | Agente de leitura, prompts versionados, RAG com pgvector                         | concluída |
-| 7    | `packages/mcp-server` com três tools                                             | a fazer   |
+| 7    | `packages/mcp-server` com três tools                                             | concluída |
 | 8    | Acabamento, Playwright, Lighthouse acima de 95                                   | a fazer   |
 
 ## O que já existe
 
-312 testes nos cinco pacotes.
+339 testes nos seis pacotes.
 
-| Pacote             | O que é                                                  | Testes |
-| ------------------ | -------------------------------------------------------- | ------ |
-| `@fluxo/domain`    | O cálculo financeiro inteiro. Não importa nada           | 123    |
-| `@fluxo/contracts` | A fronteira entre front e back, em Zod                   | 53     |
-| `@fluxo/tokens`    | A fonte única do visual, que gera `tokens.css`           | 14     |
-| `@fluxo/web`       | Nuxt 4, as seis seções e as quatro camadas de parallax   | 38     |
-| `@fluxo/api`       | NestJS com Fastify, o domínio por HTTP e a leitura da IA | 78     |
+| Pacote              | O que é                                                  | Testes |
+| ------------------- | -------------------------------------------------------- | ------ |
+| `@fluxo/domain`     | O cálculo financeiro inteiro. Não importa nada           | 123    |
+| `@fluxo/contracts`  | A fronteira entre front e back, em Zod                   | 53     |
+| `@fluxo/tokens`     | A fonte única do visual, que gera `tokens.css`           | 14     |
+| `@fluxo/web`        | Nuxt 4, as seis seções e as quatro camadas de parallax   | 38     |
+| `@fluxo/api`        | NestJS com Fastify, o domínio por HTTP e a leitura da IA | 78     |
+| `@fluxo/mcp-server` | Três tools sobre o mesmo domínio, para o Claude Desktop  | 27     |
 
 ### O domínio
 
@@ -111,12 +112,12 @@ Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
 
 ## Onde ler
 
-| Documento                         | O que é                                                                       |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto      |
-| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                    |
-| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                         |
-| [`docs/adr/`](docs/adr/README.md) | As quinze decisões de arquitetura e por que as alternativas foram descartadas |
+| Documento                         | O que é                                                                          |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto         |
+| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                       |
+| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                            |
+| [`docs/adr/`](docs/adr/README.md) | As dezesseis decisões de arquitetura e por que as alternativas foram descartadas |
 
 ## Arquitetura em uma tela
 

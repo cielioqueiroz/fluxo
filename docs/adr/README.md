@@ -36,3 +36,4 @@ que substitua o anterior e marque o antigo como substituído.
 | [0013](0013-parallax-e-movimento.md)          | Como o movimento foi construido                                       | 4    | aceito |
 | [0014](0014-api-sem-banco-obrigatorio.md)     | A API sobe sem banco e sem chave de modelo                            | 5    | aceito |
 | [0015](0015-a-leitura-da-ia.md)               | Como a leitura da IA foi construida                                   | 6    | aceito |
+| [0016](0016-mcp-sem-calculo-proprio.md)       | O servidor MCP nao tem calculo proprio                                | 7    | aceito |
