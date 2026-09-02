@@ -23,11 +23,12 @@ nada.
 
 ## 2. Decisões de produto tomadas antes do desenho
 
-| Questão           | Decisão                                                                        |
-| ----------------- | ------------------------------------------------------------------------------ |
-| Cartão de crédito | Núcleo genérico parametrizado, com a regulação brasileira isolada em um preset |
-| Portabilidade     | O domínio devolve a taxa de equilíbrio, sem exigir campo novo no formulário    |
-| Antecipação       | Aporte mensal recorrente, reduzindo prazo. Uma estratégia, não quatro          |
+| Questão                    | Decisão                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| Cartão de crédito          | Núcleo genérico parametrizado, com a regulação brasileira isolada em um preset        |
+| Modelo da dívida de cartão | Dois estágios, um ciclo de rotativo e depois parcelamento, fiel à Resolução CMN 4.549 |
+| Portabilidade              | O domínio devolve a taxa de equilíbrio, sem exigir campo novo no formulário           |
+| Antecipação                | Aporte mensal recorrente, reduzindo prazo. Uma estratégia, não quatro                 |
 
 ## 3. Arquitetura
 
@@ -36,7 +37,7 @@ sabem ler `Schedule`. A consequência prática é que a regra do centavo e as
 invariantes vivem em um construtor único, e não espalhadas por quatro arquivos.
 
 ```
-money/decimal.ts   Cents, aritmetica, distribute, arredondamento
+money/decimal.ts   Cents, aritmetica, residuo por parcela, arredondamento
 money/rate.ts      Rate, conversao mensal e anual
 
 amortization/schedule.ts   Installment, Schedule, buildSchedule, invariantes
@@ -46,7 +47,8 @@ amortization/sac.ts        amortizacao constante
 credit-card/params.ts          os tipos CardParams e PaymentPolicy
 credit-card/presets/brasil.ts  os parametros regulados, isolados
 credit-card/minimum-payment.ts resolve uma politica em um pagamento
-credit-card/revolving.ts       o rotativo mes a mes
+credit-card/revolving.ts       o estagio 1, o rotativo
+credit-card/card-debt.ts       orquestra os dois estagios e o teto
 
 strategy/prepayment.ts   aporte mensal recorrente
 strategy/compare.ts      manter, antecipar, portar
@@ -55,8 +57,10 @@ summary/insight-input.ts o resumo que a Fase 6 manda ao modelo
 index.ts   superficie publica explicita
 ```
 
-`params.ts` e `presets/` são acréscimos dentro de `credit-card/`, que a árvore do
-`AGENTS.md` já prevê. Nenhum diretório novo aparece em `src/`.
+`params.ts`, `card-debt.ts` e `presets/` são acréscimos dentro de
+`credit-card/`, que a árvore do `AGENTS.md` já prevê. Nenhum diretório novo
+aparece em `src/`. O estágio de parcelamento não ganha arquivo próprio porque
+ele é uma tabela Price, e `amortization/price.ts` já existe.
 
 ## 4. Dinheiro
 
@@ -82,18 +86,30 @@ forma diferente dos positivos. A implementação é explícita:
 const roundHalfUp = (x: number): number => Math.sign(x) * Math.round(Math.abs(x))
 ```
 
-**Superfície.** `cents`, `add`, `sub`, `mulRate`, `distribute`, `compare`,
-`isZero`, `abs`, `max`, `min`, `ZERO`.
+**Superfície.** `cents`, `add`, `sub`, `mulRate`,
+`distributeOverInstallments`, `compare`, `isZero`, `abs`, `max`, `min`, `ZERO`.
 
-**`distribute(total, partes)`** reparte um total em partes iguais e coloca o
-resíduo na última. A escolha da última, e não da primeira, é literalmente a
-frase "arredondamento de centavo na última parcela" da seção 7 do `AGENTS.md`.
+**`distributeOverInstallments(total, partes)`** reparte um total em partes
+iguais e coloca o resíduo na última.
 
 ```
-distribute(10000, 3)  ->  [3333, 3333, 3334]
-distribute(10000, 1)  ->  [10000]
-distribute(0, 12)     ->  doze zeros
+distributeOverInstallments(10000, 3)  ->  [3333, 3333, 3334]
+distributeOverInstallments(10000, 1)  ->  [10000]
+distributeOverInstallments(0, 12)     ->  doze zeros
 ```
+
+**O nome é longo de propósito, porque existe uma convenção oposta e ela está
+certa para outro problema.** O `allocate` do padrão Money de Martin Fowler
+distribui o resto nas primeiras partes, em rodízio, justamente para que nenhuma
+parte fique sistematicamente com o troco. Isso resolve repartir um valor entre
+partes, como sócios ou centros de custo.
+
+Amortização não é repartir entre partes. A convenção da indústria é ajustar o
+pagamento final para o saldo cair exatamente em zero, absorvendo o erro
+acumulado, e é o que a seção 7 do `AGENTS.md` pede com todas as letras.
+
+Se algum dia o produto precisar repartir um valor entre partes, isso é uma
+função nova seguindo Fowler, e não um parâmetro nesta.
 
 ## 5. Taxa
 
@@ -118,10 +134,11 @@ saldo e arredondar.
 ```ts
 export interface Installment {
   readonly period: number // 1-based
+  readonly stage: 'loan' | 'revolving' | 'installment'
   readonly openingBalance: Cents
   readonly interest: Cents
   readonly fees: Cents // IOF e encargos. Zero em emprestimo
-  readonly amortization: Cents // pode ser negativo no rotativo
+  readonly amortization: Cents // pode ser negativo no cartao
   readonly payment: Cents
   readonly closingBalance: Cents
 }
@@ -133,15 +150,27 @@ export interface Schedule {
   readonly totalInterest: Cents
   readonly totalFees: Cents
   readonly finalBalance: Cents
-  readonly settled: boolean // quitou dentro do horizonte
+  readonly settled: boolean // quitou dentro do horizonte simulado
+  readonly neverSettles: boolean // o pagamento nao cobre os encargos
   readonly termMonths: number
 }
 ```
 
-**`amortization` pode ser negativo, e isso não é defeito.** No rotativo com
-pagamento mínimo, quando o pagamento não cobre juros mais IOF, o saldo cresce. A
-amortização negativa é a descrição correta do que aconteceu, e é exatamente o
-que a seção 4 da narrativa existe para mostrar.
+**`amortization` pode ser negativo, e isso não é defeito.** Quando o pagamento
+não cobre juros mais encargos, o saldo cresce. Amortização negativa é o termo
+contábil estabelecido para isso, e é exatamente o que a seção 4 da narrativa
+existe para mostrar.
+
+**`settled` e `neverSettles` são fatos diferentes e não podem virar um só.**
+`settled: false` diz que a dívida não acabou dentro do horizonte simulado, o que
+é uma limitação da simulação. `neverSettles` diz que o pagamento é
+estruturalmente menor que os encargos, então a dívida não acaba nunca, e isso é
+um fato sobre a dívida.
+
+A distinção não é preciosismo. Nos Estados Unidos, o CARD Act obriga o emissor a
+avisar em destaque quando o mínimo nunca quita a fatura. Um cenário que nunca
+fecha merece tratamento visual próprio na seção 4, e o domínio precisa dizer
+qual dos dois casos ocorreu para que a UI possa fazer isso.
 
 **Invariantes, verificadas pelo construtor `buildSchedule`:**
 
@@ -151,10 +180,11 @@ que a seção 4 da narrativa existe para mostrar.
 4. Global: `totalPaid = soma(payment)`
 5. Global: `totalInterest = soma(interest)` e `totalFees = soma(fees)`
 6. Quando `settled`: `finalBalance = ZERO`
+7. `settled` e `neverSettles` nunca são ambos verdadeiros
 
-`price` e `sac` sempre produzem `settled: true` e `finalBalance` zero, e o
-construtor recebe a exigência disso. O rotativo não, e é por isso que
-`settled` existe no tipo em vez de ser presumido.
+`price` e `sac` sempre produzem `settled: true`, `neverSettles: false` e
+`finalBalance` zero, e o construtor recebe a exigência disso. O cartão não, e é
+por isso que os dois campos existem no tipo em vez de serem presumidos.
 
 ## 7. Amortização
 
@@ -167,7 +197,8 @@ PMT = PV * i / (1 - (1 + i) ** -n)
 ```
 
 Com `i = 0`, a fórmula divide por zero. O caso é tratado como caso, não como
-exceção: `PMT` vira `distribute(PV, n)`, e a tabela sai sem juros.
+exceção: `PMT` vira `distributeOverInstallments(PV, n)`, e a tabela sai sem
+juros.
 
 Construção período a período, com o pagamento arredondado uma vez e mantido
 constante nos períodos 1 até n-1. No período n a linha é montada ao contrário:
@@ -177,67 +208,115 @@ arredondamento.
 
 ### SAC
 
-Amortização constante vinda de `distribute(PV, n)`, juros sobre o saldo, parcela
-decrescente. O resíduo já está na última amortização por construção.
+Amortização constante vinda de `distributeOverInstallments(PV, n)`, juros sobre
+o saldo, parcela decrescente. O resíduo já está na última amortização por
+construção.
 
 ## 8. Cartão de crédito
 
 ### Núcleo genérico
 
+A dívida de cartão tem dois estágios, e o tipo diz isso.
+
 ```ts
 export interface CardParams {
-  readonly minimumFraction: Rate // fracao da fatura no pagamento minimo
-  readonly iof: { readonly fixed: Rate; readonly daily: Rate } | null
-  readonly totalChargeCap: Rate | null // teto de encargos sobre o valor original
+  /** Quantos ciclos o saldo pode ficar no rotativo antes de virar parcelamento. */
+  readonly revolvingCycleLimit: number
+  /** Fracao da fatura cobrada no pagamento minimo. Nao e lei, e pratica. */
+  readonly minimumFraction: Rate
+  readonly iof: {
+    readonly fixed: Rate
+    readonly daily: Rate
+    readonly dailyCapDays: number
+  } | null
+  /** Teto de encargos sobre o valor original, somando os dois estagios. */
+  readonly totalChargeCap: Rate | null
 }
 
 export type PaymentPolicy =
   | { readonly kind: 'minimum' }
   | { readonly kind: 'fixed'; readonly amount: Cents }
   | { readonly kind: 'full' }
+
+export interface CardInput {
+  readonly invoice: Cents
+  readonly revolvingRate: Rate
+  readonly installmentRate: Rate
+  readonly installmentTermMonths: number
+  readonly policy: PaymentPolicy
+  readonly params: CardParams
+}
 ```
 
 Nenhuma constante de lei aparece em `revolving.ts` ou em `minimum-payment.ts`.
 O cálculo recebe os parâmetros e não sabe de que país vieram.
+`revolvingCycleLimit` é o que torna a regra brasileira exprimível sem que o
+motor a conheça: no Brasil ele vale 1, e um país sem essa restrição usaria o
+horizonte inteiro.
 
 ### Preset brasileiro
 
-`presets/brasil.ts` carrega os parâmetros regulados vigentes: mínimo de 15% da
-fatura, IOF de 0,38% fixo mais 0,0082% ao dia, e teto que limita os encargos
-acumulados a 100% do valor original da dívida. Quando a regra mudar, muda o
-preset, e nenhum teste de cálculo é tocado.
+`presets/brasil.ts` carrega os parâmetros vigentes, cada um com a norma que o
+sustenta e a data de vigência como campos do próprio objeto, porque a Fase 6 vai
+precisar citar fonte e não pode inventá-la.
 
-O preset carrega a data de vigência e a URL da norma como campos, porque a Fase
-6 vai precisar citar fonte e não pode inventá-la.
+| Parâmetro             | Valor    | Origem                                                                                                                                                                                         |
+| --------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `revolvingCycleLimit` | 1        | Resolução CMN 4.549 de 2017, o saldo só fica no rotativo até o vencimento da fatura seguinte                                                                                                   |
+| `totalChargeCap`      | 1.0      | Lei 14.690 de 2023 e Resolução CMN 5.112, juros e encargos somados não passam de 100% do valor original, vigente desde 3 de janeiro de 2024                                                    |
+| `iof.fixed`           | 0.0038   | IOF de crédito para pessoa física                                                                                                                                                              |
+| `iof.daily`           | 0.000082 | Alíquota diária                                                                                                                                                                                |
+| `iof.dailyCapDays`    | 365      | A parcela diária para de correr em 365 dias                                                                                                                                                    |
+| `minimumFraction`     | 0.15     | **Não é lei.** O mínimo de 15% valeu por circular de 2010 e não é mais obrigatório. Hoje cada instituição fixa o seu. Entra como valor típico, marcado no preset como prática e não como norma |
 
-### O rotativo, mês a mês
+O campo `minimumFraction` carrega essa distinção explicitamente, porque um
+preset que apresenta prática de mercado como regulação é pior do que não ter
+preset nenhum.
+
+### Estágio 1, o rotativo
 
 ```
-saldo inicial = fatura
-para cada mes ate o horizonte:
-  encargos = juros(saldo) + iof(saldo), limitados pelo teto restante
+saldo = fatura
+para cada ciclo ate revolvingCycleLimit:
+  encargos = juros(saldo, revolvingRate) + iof(saldo)
+  encargos = min(encargos, teto restante)
   fatura do mes = saldo + encargos
   pagamento = politica(fatura do mes)
   saldo = fatura do mes - pagamento
   se saldo <= 0: quitado, para
 ```
 
-O IOF mensal usa trinta dias. É uma simplificação, declarada aqui e repetida no
-aviso da UI, porque o domínio não tem calendário e não vai ter: uma função que
-lê o relógio deixa de ser determinística, e o determinismo é o que sustenta a
-regra 3 do `AGENTS.md`.
+### Estágio 2, o parcelamento
 
-**O que o teto conta.** Encargo é juros mais IOF, acumulado desde o primeiro
-mês. O teto morde quando esse acumulado alcança
-`totalChargeCap * faturaOriginal`. No mês em que morde, os encargos são cortados
-no valor que falta para completar o teto, e não zerados. A partir do mês
-seguinte o saldo para de crescer por encargo, e só se move por pagamento. O
-período em que isso acontece é devolvido.
+O saldo que sobrar do último ciclo de rotativo entra em uma tabela Price com
+`installmentRate` e `installmentTermMonths`, e o teto continua contando de onde
+parou. As linhas dos dois estágios entram no mesmo `Schedule`, em sequência,
+porque para o usuário é uma dívida só.
+
+É o campo `stage` de cada `Installment` que permite à seção 4 desenhar o degrau
+entre os dois, que é o momento em que o número muda de comportamento.
+Empréstimos preenchem `stage` com `'loan'` em todas as linhas.
+
+### As duas simplificações do IOF
+
+O IOF mensal usa trinta dias, e o limite de 365 dias da parcela diária é contado
+em meses de trinta dias. O domínio não tem calendário e não vai ter: uma função
+que lê o relógio deixa de ser determinística, e o determinismo é o que sustenta
+a regra 3 do `AGENTS.md`. Fica declarado aqui e repetido no aviso da UI.
+
+### O teto
+
+Encargo é juros mais IOF, acumulado desde o primeiro mês e **somando os dois
+estágios**, porque é assim que a Lei 14.690 conta. O teto morde quando esse
+acumulado alcança `totalChargeCap * faturaOriginal`. No mês em que morde, os
+encargos são cortados no valor que falta para completar o teto, e não zerados. A
+partir do mês seguinte o saldo só se move por pagamento.
 
 ```ts
 export interface CardOutcome {
   readonly schedule: Schedule
   readonly capReachedAtPeriod: number | null
+  readonly revolvingEndedAtPeriod: number | null
 }
 ```
 
@@ -248,7 +327,8 @@ zero com fatura maior que zero, o pagamento vira a fatura inteira, porque uma
 dívida de um centavo não pode gerar tabela infinita.
 
 **O mínimo que não cobre os juros não é erro.** É saída válida, com
-`settled: false` e amortização negativa em todas as linhas. Tem teste próprio.
+`neverSettles: true` e amortização negativa nas linhas do estágio em que
+acontece. Tem teste próprio.
 
 ## 9. Estratégia
 
@@ -282,10 +362,10 @@ Manter e antecipar são cenários. Portar não é, e o tipo precisa dizer isso.
 
 ```ts
 export interface ScenarioSummary {
-  readonly totalPaidCents: Cents
-  readonly totalInterestCents: Cents
+  readonly totalPaid: Cents
+  readonly totalInterest: Cents
   readonly termMonths: number
-  readonly savedVersusKeepCents: Cents   // zero no proprio manter
+  readonly savedVersusKeep: Cents // zero no proprio manter
   readonly savedVersusKeepMonths: number
 }
 
@@ -322,18 +402,19 @@ e vira aviso visível na UI, não nota de rodapé.
 ```ts
 export interface InsightInput {
   readonly kind: 'loan' | 'card'
-  readonly principalCents: number
-  readonly totalPaidCents: number
-  readonly totalInterestCents: number
-  readonly totalFeesCents: number
+  readonly principal: Cents
+  readonly totalPaid: Cents
+  readonly totalInterest: Cents
+  readonly totalFees: Cents
   readonly interestOverPrincipalPercent: number // uma casa decimal
   readonly termMonths: number
   readonly settled: boolean
+  readonly neverSettles: boolean
   readonly capReachedAtPeriod: number | null
   readonly milestones: readonly {
     readonly fraction: 0.25 | 0.5 | 0.75
     readonly period: number
-    readonly balanceCents: number
+    readonly balance: Cents
   }[]
 }
 ```
@@ -346,9 +427,15 @@ O teto de 800 tokens da seção 6 do `AGENTS.md` é garantido por construção: 
 estrutura tem tamanho fixo e no máximo três marcos. O array de parcelas nunca
 sai do domínio em direção ao modelo.
 
-Os campos saem como `number` e não como `Cents`, porque este objeto atravessa
-JSON e a marca não sobrevive à serialização. A conversão é explícita e acontece
-uma vez, aqui.
+**Os campos monetários saem como `Cents`, e não como `number` cru.** A marca em
+TypeScript existe só em tempo de compilação, então `JSON.stringify` já a ignora
+e o que atravessa a rede já é um número puro, sem custo nenhum. Degradar o tipo
+não compraria nada e perderia a verificação dentro do domínio.
+
+O padrão estabelecido é este: marca artesanal nos tipos internos, e a fronteira
+de serialização valida e remarca na entrada. Essa fronteira é a Fase 2,
+`packages/contracts`, com Zod. É lá que um número que voltou de um JSON vira
+`Cents` de novo, depois de ser validado, e não por conversão silenciosa.
 
 ## 11. Testes
 
@@ -364,20 +451,25 @@ desde a Fase 0.
 
 **Casos de borda, um teste nomeado para cada:**
 
-| Caso                              | Onde                         |
-| --------------------------------- | ---------------------------- |
-| Taxa zero                         | `price`, `sac`               |
-| Prazo de um mês                   | `price`, `sac`               |
-| Valor que não divide pelo prazo   | `distribute`, `price`, `sac` |
-| Resíduo na última parcela         | `sac`                        |
-| Mínimo que não cobre os juros     | `revolving`                  |
-| Teto do rotativo mordendo no meio | `revolving`                  |
-| Fatura de um centavo              | `minimum-payment`            |
-| Aporte zero                       | `prepayment`                 |
-| Aporte maior que o saldo devedor  | `prepayment`                 |
-| Aporte que quita no penúltimo mês | `prepayment`                 |
-| Bisseção com aporte zero          | `portabilityBreakEven`       |
-| Cenário não quitado               | `summarize`                  |
+| Caso                                                                  | Onde                                         |
+| --------------------------------------------------------------------- | -------------------------------------------- |
+| Taxa zero                                                             | `price`, `sac`                               |
+| Prazo de um mês                                                       | `price`, `sac`                               |
+| Valor que não divide pelo prazo                                       | `distributeOverInstallments`, `price`, `sac` |
+| Resíduo na última parcela                                             | `sac`                                        |
+| Fatura quitada no próprio ciclo de rotativo, sem estágio 2            | `card-debt`                                  |
+| Mínimo que não cobre os encargos, com `neverSettles`                  | `card-debt`                                  |
+| Teto mordendo dentro do rotativo                                      | `card-debt`                                  |
+| Teto mordendo já no parcelamento, contando os dois estágios           | `card-debt`                                  |
+| Continuidade do saldo na fronteira entre os estágios                  | `card-debt`                                  |
+| `revolvingCycleLimit` maior que 1, para provar que o motor é genérico | `card-debt`                                  |
+| Fatura de um centavo                                                  | `minimum-payment`                            |
+| Aporte zero                                                           | `prepayment`                                 |
+| Aporte maior que o saldo devedor                                      | `prepayment`                                 |
+| Aporte que quita no penúltimo mês                                     | `prepayment`                                 |
+| Bisseção com aporte zero                                              | `portabilityBreakEven`                       |
+| Cenário não quitado devolve marcos vazios                             | `summarize`                                  |
+| O preset brasileiro carrega norma e data em todo campo regulado       | `presets/brasil`                             |
 
 ## 12. O que este pacote não faz
 
@@ -388,8 +480,22 @@ borda é da Fase 2, em `packages/contracts`. A formatação é da Fase 3, em
 
 ## 13. ADRs que saem desta fase
 
-| #    | Assunto                                                                        |
-| ---- | ------------------------------------------------------------------------------ |
-| 0006 | Dinheiro em `Cents` de marca sobre `number`, com arredondamento meio para cima |
-| 0007 | Comparação nominal, sem valor do dinheiro no tempo                             |
-| 0008 | Regulação do cartão isolada em preset, fora do cálculo                         |
+| #    | Assunto                                                                                                                              |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 0006 | Dinheiro em `Cents` de marca sobre `number`, com arredondamento meio para cima, e a marca preservada até a fronteira de serialização |
+| 0007 | Comparação nominal, sem valor do dinheiro no tempo                                                                                   |
+| 0008 | Regulação do cartão isolada em preset, fora do cálculo, com norma e data em cada campo                                               |
+| 0009 | Dívida de cartão em dois estágios, por causa da Resolução CMN 4.549                                                                  |
+| 0010 | Resíduo de divisão na última parcela, e por que o `allocate` de Fowler resolve outro problema                                        |
+
+## 14. Fontes das regras brasileiras
+
+Toda regra que entra no preset tem fonte, e a fonte entra no código como campo,
+não como comentário. A Fase 6 vai citar estes mesmos endereços.
+
+| Regra                                | Fonte                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Rotativo limitado a um ciclo         | Resolução CMN 4.549 de 26 de janeiro de 2017, `https://normativos.bcb.gov.br/Lists/Normativos/Attachments/50330/Res_4549_v1_O.pdf` |
+| Teto de 100% sobre juros e encargos  | Lei 14.690 de 2023 e Resolução CMN 5.112, em vigor desde 3 de janeiro de 2024                                                      |
+| Mínimo de 15% não é mais obrigatório | Circular BCB 3.512 de 2010, revogada nesse ponto. Hoje cada instituição fixa o seu                                                 |
+| IOF de crédito para pessoa física    | 0,38% fixo mais 0,0082% ao dia, com o diário limitado a 365 dias                                                                   |
