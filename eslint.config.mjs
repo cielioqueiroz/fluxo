@@ -1,8 +1,29 @@
 // @ts-check
 import js from '@eslint/js'
 import prettier from 'eslint-config-prettier'
+import vue from 'eslint-plugin-vue'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
+import vueParser from 'vue-eslint-parser'
+
+/**
+ * Auto imports do Nuxt.
+ *
+ * O Nuxt injeta estes nomes em tempo de build, entao o ESLint nao os encontra
+ * sozinho. Declarados aqui, e nao silenciados com `no-undef` desligado, porque
+ * a lista precisa ser visivel para quem ler a configuracao.
+ */
+const NUXT_GLOBALS = {
+  defineNuxtPlugin: 'readonly',
+  definePageMeta: 'readonly',
+  useHead: 'readonly',
+  useSeoMeta: 'readonly',
+  useRuntimeConfig: 'readonly',
+  useRoute: 'readonly',
+  useRouter: 'readonly',
+  useState: 'readonly',
+  navigateTo: 'readonly',
+}
 
 /**
  * Fronteira do grafo de dependencia declarado no AGENTS.md secao 3.
@@ -105,6 +126,35 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,cjs}'],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+
+  // Componentes de unica arquivo, com o parser do Vue por cima do de TypeScript.
+  ...vue.configs['flat/recommended'],
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: vueParser,
+      globals: { ...globals.browser, ...NUXT_GLOBALS },
+      parserOptions: {
+        parser: tseslint.parser,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.vue'],
+      },
+    },
+    rules: {
+      // O Nuxt resolve componentes por auto import, entao o nome do arquivo ja
+      // e o nome do componente. Exigir nome composto duplicaria o prefixo.
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
+  // O front roda no navegador e usa os auto imports do Nuxt.
+  {
+    files: ['apps/web/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.browser, ...NUXT_GLOBALS },
+    },
   },
 
   {

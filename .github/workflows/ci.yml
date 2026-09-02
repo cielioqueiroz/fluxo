@@ -63,6 +63,17 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Nenhum travessao no texto
+        run: |
+          # AGENTS.md regra 4: sem travessao na UI, na documentacao nem na saida
+          # da IA. Arquivos de teste ficam de fora porque usam o caractere como
+          # fixture, para provar que o schema o recusa.
+          if git grep -nI -e $'—' -e $'–' -- '*.ts' '*.vue' '*.css' '*.md' \
+               ':!AGENTS.md' ':!PROMPT-fluxo.md' ':!*.test.ts'; then
+            echo "Travessao encontrado. Use virgula, dois pontos ou ponto final."
+            exit 1
+          fi
+
       - name: Nenhum segredo commitado
         run: |
           if git grep -nIE '(AIza[0-9A-Za-z_-]{35}|postgres(ql)?://[^ ]*:[^ ]*@)' -- . ':!pnpm-lock.yaml' ':!.github/workflows/ci.yml'; then

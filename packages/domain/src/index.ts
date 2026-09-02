@@ -10,6 +10,7 @@ export {
   add,
   cents,
   distributeOverInstallments,
+  largest,
   roundHalfUp,
   smallest,
   sub,

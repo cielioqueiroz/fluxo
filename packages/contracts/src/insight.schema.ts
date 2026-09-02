@@ -35,7 +35,9 @@ export const insightInputSchema = z.strictObject({
 /* O que o modelo devolve
    ------------------------------------------------------------------------- */
 
-const TRAVESSAO = /[–—]/
+/** En dash e em dash, escritos como escape para o proprio arquivo passar na
+    verificacao de travessao do CI. */
+const TRAVESSAO = /[\u2013\u2014]/
 
 /**
  * Texto vindo do modelo.

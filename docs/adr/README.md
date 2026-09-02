@@ -32,3 +32,4 @@ que substitua o anterior e marque o antigo como substituído.
 | [0009](0009-cartao-em-dois-estagios.md)       | Dívida de cartão em dois estágios                                     | 1    | aceito |
 | [0010](0010-residuo-na-ultima-parcela.md)     | Resíduo de divisão na última parcela                                  | 1    | aceito |
 | [0011](0011-contracts-importa-domain.md)      | `packages/contracts` importa `packages/domain`                        | 2    | aceito |
+| [0012](0012-nuxt-segue-a-arvore-do-agents.md) | O Nuxt e configurado para seguir a arvore do AGENTS.md                | 3    | aceito |

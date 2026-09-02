@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./.nuxt/tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "nuxt.config.ts",
+    "vitest.config.ts",
+    "app/**/*.ts",
+    "app/**/*.vue",
+    "components/**/*.vue",
+    "composables/**/*.ts",
+    "stores/**/*.ts",
+    "lib/**/*.ts",
+    "tests/**/*.ts",
+    ".nuxt/nuxt.d.ts"
+  ],
+  "exclude": ["dist", ".output", "node_modules"]
+}

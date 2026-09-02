@@ -25,6 +25,7 @@ export function roundHalfUp(value: number): number {
 export const add = (a: Cents, b: Cents): Cents => cents(a + b)
 export const sub = (a: Cents, b: Cents): Cents => cents(a - b)
 export const smallest = (a: Cents, b: Cents): Cents => (a <= b ? a : b)
+export const largest = (a: Cents, b: Cents): Cents => (a >= b ? a : b)
 
 /**
  * Reparte um total em parcelas iguais e poe o residuo na ultima.

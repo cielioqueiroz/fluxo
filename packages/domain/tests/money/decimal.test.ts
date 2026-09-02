@@ -5,6 +5,7 @@ import {
   add,
   cents,
   distributeOverInstallments,
+  largest,
   roundHalfUp,
   smallest,
   sub,
@@ -53,6 +54,15 @@ describe('aritmetica', () => {
 
   it('smallest com valores iguais devolve o valor', () => {
     expect(smallest(cents(50), cents(50))).toBe(50)
+  })
+
+  it('largest devolve o maior dos dois, nos dois sentidos', () => {
+    expect(largest(cents(100), cents(23))).toBe(100)
+    expect(largest(cents(23), cents(100))).toBe(100)
+  })
+
+  it('largest com valores iguais devolve o valor', () => {
+    expect(largest(cents(50), cents(50))).toBe(50)
   })
 })
 

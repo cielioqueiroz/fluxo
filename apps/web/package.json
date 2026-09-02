@@ -1,0 +1,27 @@
+{
+  "name": "@fluxo/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fluxo, a narrativa por scroll. Nuxt 4 e Vue 3.",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@fluxo/contracts": "workspace:*",
+    "@fluxo/domain": "workspace:*",
+    "@fluxo/tokens": "workspace:*",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.24"
+  },
+  "devDependencies": {
+    "@pinia/nuxt": "^0.11.2",
+    "nuxt": "^4.2.4",
+    "vue-tsc": "^3.1.3"
+  }
+}

@@ -8,9 +8,10 @@ e compara estratégias de quitação, sempre com citação de fonte pública.
 A IA é uma camada de interpretação sobre um cálculo determinístico, nunca a
 fonte do número.
 
-> **Estado:** Fases 0, 1 e 2 concluídas. O cálculo financeiro, a fronteira
-> entre front e back e o design system estão prontos e testados. Ainda não há
-> interface. Este README acompanha o repositório e é reescrito a cada fase.
+> **Estado:** Fases 0 a 3 concluídas. A página existe, calcula no navegador e
+> ainda não tem uma única animação, de propósito: ela precisa parecer boa
+> parada antes de ganhar movimento. Este README acompanha o repositório e é
+> reescrito a cada fase.
 
 ## Fases
 
@@ -19,7 +20,7 @@ fonte do número.
 | 0    | Monorepo, TypeScript estrito, ESLint com a fronteira do grafo, Vitest, Husky, CI | concluída |
 | 1    | `packages/domain`, todo o cálculo financeiro                                     | concluída |
 | 2    | `packages/contracts` com Zod e `packages/tokens` gerando o CSS                   | concluída |
-| 3    | `apps/web` estático, seis seções, zero animação                                  | a fazer   |
+| 3    | `apps/web` estático, seis seções, zero animação                                  | concluída |
 | 4    | Movimento: Lenis, ScrollTrigger, TresJS, shader, movimento reduzido              | a fazer   |
 | 5    | `apps/api` em NestJS, Drizzle e Neon                                             | a fazer   |
 | 6    | Agente de leitura, prompts versionados, RAG com pgvector                         | a fazer   |
@@ -28,14 +29,14 @@ fonte do número.
 
 ## O que já existe
 
-190 testes nos três pacotes, com 100% de cobertura em linhas, ramos, funções e
-enunciados em cada um.
+226 testes nos quatro pacotes.
 
-| Pacote             | O que é                                        | Testes |
-| ------------------ | ---------------------------------------------- | ------ |
-| `@fluxo/domain`    | O cálculo financeiro inteiro. Não importa nada | 123    |
-| `@fluxo/contracts` | A fronteira entre front e back, em Zod         | 53     |
-| `@fluxo/tokens`    | A fonte única do visual, que gera `tokens.css` | 14     |
+| Pacote             | O que é                                            | Testes |
+| ------------------ | -------------------------------------------------- | ------ |
+| `@fluxo/domain`    | O cálculo financeiro inteiro. Não importa nada     | 123    |
+| `@fluxo/contracts` | A fronteira entre front e back, em Zod             | 53     |
+| `@fluxo/tokens`    | A fonte única do visual, que gera `tokens.css`     | 14     |
+| `@fluxo/web`       | Nuxt 4, as seis seções da narrativa, zero animação | 34     |
 
 ### O domínio
 
@@ -77,6 +78,27 @@ impede antes de virarem problema:
 `apps/web/assets/css/tokens.css`, e o CI recusa o build se o CSS versionado
 estiver dessincronizado do TypeScript.
 
+### A página
+
+Seis seções em Nuxt 4, grid assimétrico de doze colunas, fundo quase preto,
+superfícies separadas por filete de 1px e nenhuma sombra. General Sans e
+JetBrains Mono auto hospedadas, sem CDN de terceiro. Números sempre em
+monoespaçada com `tabular-nums`, e a cor de sotaque aplicada só ao dinheiro.
+
+O cálculo roda no navegador contra `@fluxo/domain`, então a página é completa e
+instantânea sem a API. Nenhuma biblioteca de animação está instalada: elas
+entram na Fase 4.
+
+Dois defeitos apareceram durante a construção e viraram teste:
+
+- **A mesma taxa de juros aparecia como 49,88% na seção 4 e 49,90% na seção 6**,
+  porque um componente recalculava o percentual em vez de usar o que o domínio
+  já produzira. Número único exige fonte única
+- **`parseCurrencyInput` errava o centavo.** Fazia `Math.round(valor * 100)`, e
+  `1.005 * 100` dá `100.49999999999999` em ponto flutuante. Agora ela trabalha
+  sobre os dígitos, e essa é a última fronteira do produto onde float podia
+  aparecer
+
 ## Como rodar
 
 ```bash
@@ -94,7 +116,7 @@ Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
 | [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto    |
 | [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                  |
 | [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                       |
-| [`docs/adr/`](docs/adr/README.md) | As onze decisões de arquitetura e por que as alternativas foram descartadas |
+| [`docs/adr/`](docs/adr/README.md) | As doze decisões de arquitetura e por que as alternativas foram descartadas |
 
 ## Arquitetura em uma tela
 

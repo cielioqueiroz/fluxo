@@ -10,6 +10,7 @@ describe('superficie publica', () => {
       'add',
       'sub',
       'smallest',
+      'largest',
       'roundHalfUp',
       'distributeOverInstallments',
       'rate',
