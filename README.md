@@ -8,11 +8,30 @@ e compara estratégias de quitação, sempre com citação de fonte pública.
 A IA é uma camada de interpretação sobre um cálculo determinístico, nunca a
 fonte do número.
 
-> **Estado:** Fases 0 a 7 concluídas. A página existe, calcula no navegador e
-> tem as quatro camadas de parallax. Sem interface de API ainda. Este README
-> acompanha o repositório e é reescrito a cada fase.
+> **Estado:** as oito fases estão implementadas. Falta acabamento medido e o
+> deploy, listados em [O que ainda falta](#o-que-ainda-falta). O que existe está
+> testado e verificado rodando.
 
-## Fases
+## Como rodar
+
+```bash
+pnpm install
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
+`packageManager`.
+
+Para ver a página:
+
+```bash
+pnpm --filter @fluxo/web dev
+```
+
+A API e a leitura da IA são opcionais. A página calcula tudo no navegador e é
+completa sem elas.
+
+## Estado por fase
 
 | Fase | Entrega                                                                          | Estado    |
 | ---- | -------------------------------------------------------------------------------- | --------- |
@@ -24,20 +43,20 @@ fonte do número.
 | 5    | `apps/api` em NestJS, Drizzle e Neon                                             | concluída |
 | 6    | Agente de leitura, prompts versionados, RAG com pgvector                         | concluída |
 | 7    | `packages/mcp-server` com três tools                                             | concluída |
-| 8    | Acabamento, Playwright, Lighthouse acima de 95                                   | a fazer   |
+| 8    | Acabamento, Playwright, Lighthouse                                               | parcial   |
 
-## O que já existe
+## O que existe
 
-339 testes nos seis pacotes.
+367 testes, sendo 339 unitários e de contrato mais 28 de ponta a ponta.
 
-| Pacote              | O que é                                                  | Testes |
-| ------------------- | -------------------------------------------------------- | ------ |
-| `@fluxo/domain`     | O cálculo financeiro inteiro. Não importa nada           | 123    |
-| `@fluxo/contracts`  | A fronteira entre front e back, em Zod                   | 53     |
-| `@fluxo/tokens`     | A fonte única do visual, que gera `tokens.css`           | 14     |
-| `@fluxo/web`        | Nuxt 4, as seis seções e as quatro camadas de parallax   | 38     |
-| `@fluxo/api`        | NestJS com Fastify, o domínio por HTTP e a leitura da IA | 78     |
-| `@fluxo/mcp-server` | Três tools sobre o mesmo domínio, para o Claude Desktop  | 27     |
+| Pacote              | O que é                                                  | Testes     |
+| ------------------- | -------------------------------------------------------- | ---------- |
+| `@fluxo/domain`     | O cálculo financeiro inteiro. Não importa nada           | 125        |
+| `@fluxo/api`        | NestJS com Fastify, o domínio por HTTP e a leitura da IA | 78         |
+| `@fluxo/contracts`  | A fronteira entre front e back, em Zod                   | 57         |
+| `@fluxo/web`        | Nuxt 4, as seis seções e as quatro camadas de parallax   | 38 mais 28 |
+| `@fluxo/mcp-server` | Três tools sobre o mesmo domínio, para o Claude Desktop  | 27         |
+| `@fluxo/tokens`     | A fonte única do visual, que gera `tokens.css`           | 14         |
 
 ### O domínio
 
@@ -50,9 +69,9 @@ fonte do número.
 | `credit-card`         | Rotativo e parcelamento em dois estágios, teto de encargos, IOF, tudo parametrizado            |
 | `credit-card/presets` | Os parâmetros brasileiros, cada um com a norma, a URL e a data de vigência                     |
 | `strategy`            | Aporte mensal recorrente e a taxa de equilíbrio da portabilidade                               |
-| `summary`             | O resumo estruturado que o agente da Fase 6 vai consumir no lugar da tabela                    |
+| `summary`             | O resumo estruturado que o agente consome no lugar da tabela                                   |
 
-Duas descobertas mudaram o modelo durante a Fase 1, e as duas estão em ADR:
+Duas descobertas mudaram o modelo, e as duas estão em ADR:
 
 - **O rotativo brasileiro dura no máximo um ciclo.** Desde a Resolução CMN 4.549
   de 2017, o saldo vira parcelamento obrigatório na fatura seguinte. Simular
@@ -69,55 +88,66 @@ impede antes de virarem problema:
 
 - O cliente manda o **nome** do preset de regulação, nunca o objeto de
   parâmetros. Ninguém simula um teto de encargos que a lei não permite
-- A saída do modelo é recusada se uma afirmação apontar para citação
-  inexistente, ou se não houver citação nenhuma
+- A saída do modelo é recusada se uma afirmação apontar para citação inexistente
 - Travessão na saída da IA é recusado pelo schema, não pedido no prompt
-
-### O design system
-
-`packages/tokens` é a fonte única. `build.ts` gera
-`apps/web/assets/css/tokens.css`, e o CI recusa o build se o CSS versionado
-estiver dessincronizado do TypeScript.
 
 ### A página
 
 Seis seções em Nuxt 4, grid assimétrico de doze colunas, fundo quase preto,
 superfícies separadas por filete de 1px e nenhuma sombra. General Sans e
-JetBrains Mono auto hospedadas, sem CDN de terceiro. Números sempre em
-monoespaçada com `tabular-nums`, e a cor de sotaque aplicada só ao dinheiro.
+JetBrains Mono auto hospedadas, sem CDN de terceiro.
 
-O cálculo roda no navegador contra `@fluxo/domain`, então a página é completa e
-instantânea sem a API. Nenhuma biblioteca de animação está instalada: elas
-entram na Fase 4.
+Quatro camadas de parallax com Lenis e um único ScrollTrigger por seção. A curva
+é revelada escalando um recorte, e não por `stroke-dashoffset`, porque a regra
+manda animar apenas `transform` e `opacity`.
 
-Dois defeitos apareceram durante a construção e viraram teste:
+**Nada disso é obrigatório para a página funcionar.** Com movimento reduzido, ou
+sem WebGL, as cenas não montam e os gráficos estáticos assumem. O HTML que o
+servidor entrega já é essa versão.
 
-- **A mesma taxa de juros aparecia como 49,88% na seção 4 e 49,90% na seção 6**,
-  porque um componente recalculava o percentual em vez de usar o que o domínio
-  já produzira. Número único exige fonte única
-- **`parseCurrencyInput` errava o centavo.** Fazia `Math.round(valor * 100)`, e
-  `1.005 * 100` dá `100.49999999999999` em ponto flutuante. Agora ela trabalha
-  sobre os dígitos, e essa é a última fronteira do produto onde float podia
-  aparecer
+### A leitura da IA
 
-## Como rodar
+Porta e adapter: um arquivo só sabe que existe Gemini. Prompts em `.md` com
+versão no nome e hash persistido, saída validada por Zod com uma correção e
+degradação silenciosa, cache por hash de parâmetros mais hash de prompt, e RAG
+com pgvector onde afirmação sem citação correspondente é removida antes de
+chegar à tela.
 
-```bash
-pnpm install
-pnpm lint && pnpm typecheck && pnpm test && pnpm build
+Sem chave de modelo, a API responde com `degraded: true` e a página mostra o
+resumo determinístico. Isso é o comportamento correto, não um erro.
+
+## O que ainda falta
+
+| Item                               | Situação                                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lighthouse performance acima de 95 | Está em **85**. Sobra custo de JavaScript: TresJS, three, GSAP e Lenis carregam sempre, e deveriam carregar sob demanda quando `comCena` for verdadeiro |
+| Deploy no Vercel e no Render       | Nada foi publicado. O código está pronto para receber as variáveis                                                                                      |
+| Banco Neon provisionado            | O schema e as migrações existem. Nenhum banco foi criado                                                                                                |
+| Ingestão do corpus                 | O script e o corpus existem. Nunca rodou, porque exige `DATABASE_URL` e `GEMINI_API_KEY`                                                                |
+| Verificação contra o Gemini real   | Todo o comportamento em torno do modelo está testado com dublê. Contra o provedor de verdade, nada foi exercitado                                       |
+| Capturas de tela neste README      | Faltam                                                                                                                                                  |
+
+Os cinco primeiros dependem de credenciais que só o dono do projeto pode criar.
+
+Medições reais do Lighthouse, no build de produção, em Chrome sem GPU:
+
+```
+performance 85   acessibilidade 96   boas praticas 81   seo 100
+LCP 1,8s   CLS 0,004   TBT 0ms   erros de console 0
 ```
 
-Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
-`packageManager`.
+`boas praticas` fica em 81 por dois itens que só existem localmente: HTTP em vez
+de HTTPS, e ausência de source maps no bundle de produção.
 
 ## Onde ler
 
-| Documento                         | O que é                                                                          |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto         |
-| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                       |
-| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                            |
-| [`docs/adr/`](docs/adr/README.md) | As dezesseis decisões de arquitetura e por que as alternativas foram descartadas |
+| Documento                                                        | O que é                                                                          |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [`AGENTS.md`](AGENTS.md)                                         | O contrato. Arquitetura, design system, regras de parallax e de contexto         |
+| [`docs/plan/`](docs/plan)                                        | O roadmap das oito fases e o plano de execução de cada uma                       |
+| [`docs/spec/`](docs/spec)                                        | A especificação de desenho do domínio                                            |
+| [`docs/adr/`](docs/adr/README.md)                                | As dezessete decisões de arquitetura e por que as alternativas foram descartadas |
+| [`packages/mcp-server/README.md`](packages/mcp-server/README.md) | Como instalar as três tools no Claude Desktop                                    |
 
 ## Arquitetura em uma tela
 
@@ -129,6 +159,7 @@ atravessar a fronteira.
 apps/web            -> contracts, tokens, domain
 apps/api            -> contracts, domain
 packages/mcp-server -> contracts, domain
+packages/contracts  -> domain
 packages/domain     -> nada
 ```
 

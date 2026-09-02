@@ -14,8 +14,10 @@ export default defineNuxtConfig({
    * arvore declarada divergem, a arvore declarada vence.
    */
   srcDir: 'app',
+  // dir.public resolve a partir de rootDir, e nao de srcDir: a pasta fica em
+  // apps/web/public, exatamente onde a arvore do AGENTS.md a coloca.
   dir: {
-    public: '../public',
+    public: 'public',
   },
   // pathPrefix desligado porque os arquivos ja carregam o prefixo no nome:
   // components/ui/UiLabel.vue e <UiLabel>, nao <UiUiLabel>.
@@ -36,6 +38,8 @@ export default defineNuxtConfig({
        * roda o projeto localmente sem subir a API.
        */
       apiBase: '',
+      /** URL publica do site. Usada no sitemap e nas meta tags sociais. */
+      siteUrl: 'https://fluxo.example',
     },
   },
 
@@ -52,7 +56,28 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        // A pagina so existe em escuro. Declarar isso evita o flash branco que
+        // o navegador pinta antes do primeiro estilo chegar.
         { name: 'color-scheme', content: 'dark' },
+        { name: 'theme-color', content: '#0A0A0A' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'manifest', href: '/site.webmanifest' },
+        /*
+         * Preload da fonte de display.
+         *
+         * Ela compoe a headline, que e o elemento de LCP. Sem o preload, o
+         * navegador so descobre a fonte depois de ler o CSS, e o texto maior da
+         * pagina espera duas viagens de rede para assentar.
+         */
+        {
+          rel: 'preload',
+          as: 'font',
+          type: 'font/woff2',
+          href: '/fonts/general-sans-300.woff2',
+          crossorigin: 'anonymous',
+        },
       ],
     },
   },

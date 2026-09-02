@@ -1,0 +1,11 @@
+{
+  "name": "Fluxo, anatomia de uma divida",
+  "short_name": "Fluxo",
+  "description": "Simule um financiamento ou uma fatura de cartao e veja o comportamento do dinheiro no tempo.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "lang": "pt-BR",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

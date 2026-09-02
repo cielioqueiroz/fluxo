@@ -4,24 +4,52 @@ import { computed } from 'vue'
 
 import { PARALLAX } from '~~/composables/useParallaxLayer'
 import { useReducedMotion } from '~~/composables/useReducedMotion'
+import { useWebgl } from '~~/composables/useWebgl'
 import { formatCurrency, formatTerm } from '~~/lib/format'
 import { useSimulationStore } from '~~/stores/simulation.store'
 
-useHead({
+const DESCRICAO =
+  'Simule um financiamento ou uma fatura de cartao e veja o que acontece com o dinheiro ao longo do tempo. Calculo deterministico, material educativo.'
+
+const { siteUrl } = useRuntimeConfig().public
+
+useSeoMeta({
   title: 'Fluxo, anatomia de uma divida',
-  meta: [
-    {
-      name: 'description',
-      content:
-        'Simule um financiamento ou uma fatura de cartao e veja o que acontece com o dinheiro ao longo do tempo. Calculo deterministico, material educativo.',
-    },
-  ],
+  description: DESCRICAO,
+  ogTitle: 'Fluxo, anatomia de uma divida',
+  ogDescription: DESCRICAO,
+  ogType: 'website',
+  ogLocale: 'pt_BR',
+  ogUrl: siteUrl,
+  ogImage: `${siteUrl}/og.svg`,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  ogImageAlt: 'Fluxo, anatomia de uma divida. Duas curvas que se cruzam sobre fundo escuro.',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Fluxo, anatomia de uma divida',
+  twitterDescription: DESCRICAO,
+  twitterImage: `${siteUrl}/og.svg`,
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: siteUrl }],
 })
 
 const store = useSimulationStore()
 const { kind, schedule, comparison, summary, card, isEmpty } = storeToRefs(store)
 
 const movimentoReduzido = useReducedMotion()
+const webglDisponivel = useWebgl()
+
+/**
+ * Se as cenas 3D podem ser montadas.
+ *
+ * Duas razoes independentes para nao montar, e a mesma consequencia: os
+ * graficos estaticos da Fase 3 assumem. Movimento reduzido e escolha do
+ * usuario; WebGL ausente e limite do navegador. Nenhuma das duas pode custar a
+ * narrativa.
+ */
+const comCena = computed(() => !movimentoReduzido.value && webglDisponivel.value)
 
 /** O mes em que a divida passa a devolver mais principal do que custa em juros. */
 const viradaDaCurva = computed(() => {
@@ -38,7 +66,7 @@ const metade = computed(() => summary.value?.milestones.find((m) => m.fraction =
 
 <template>
   <div class="narrative">
-    <SceneNoise v-if="!movimentoReduzido" />
+    <SceneNoise v-if="comCena" />
 
     <div class="narrative__content">
       <!-- 1. Entrada -->
@@ -81,7 +109,7 @@ const metade = computed(() => summary.value?.milestones.find((m) => m.fraction =
 
         <template #stage="{ progress }">
           <template v-if="schedule">
-            <SceneColumns v-if="!movimentoReduzido" :schedule="schedule" :progress="progress" />
+            <SceneColumns v-if="comCena" :schedule="schedule" :progress="progress" />
             <ChartInstallments v-else :schedule="schedule" />
           </template>
           <div v-else class="empty">Sem valor</div>
@@ -112,7 +140,7 @@ const metade = computed(() => summary.value?.milestones.find((m) => m.fraction =
 
         <template #stage>
           <template v-if="schedule">
-            <SceneCurve v-if="!movimentoReduzido" :schedule="schedule" />
+            <SceneCurve v-if="comCena" :schedule="schedule" />
             <ChartAmortization v-else :schedule="schedule" />
           </template>
           <div v-else class="empty">Sem valor</div>

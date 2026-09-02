@@ -6,12 +6,19 @@
  * token, o lugar dele e packages/tokens/src, nao este arquivo.
  */
 
-/* Fontes locais, auto hospedadas. General Sans da Fontshare, licenca livre.
-   JetBrains Mono sob SIL OFL. Nenhuma requisicao a CDN de terceiro. */
+/*
+ * Fontes locais, auto hospedadas. General Sans da Fontshare, licenca livre.
+ * JetBrains Mono sob SIL OFL. Nenhuma requisicao a CDN de terceiro.
+ *
+ * Vivem em public e nao em assets, entao o caminho e estavel e nao ganha hash
+ * de conteudo. A troca e deliberada: o preload da fonte de display no
+ * nuxt.config.ts precisa de um endereco previsivel, e preload apontando para o
+ * arquivo errado baixa um 404 em vez de adiantar o LCP.
+ */
 
 @font-face {
   font-family: 'General Sans';
-  src: url('../fonts/general-sans-300.woff2') format('woff2');
+  src: url('/fonts/general-sans-300.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -19,7 +26,7 @@
 
 @font-face {
   font-family: 'General Sans';
-  src: url('../fonts/general-sans-400.woff2') format('woff2');
+  src: url('/fonts/general-sans-400.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -27,7 +34,7 @@
 
 @font-face {
   font-family: 'General Sans';
-  src: url('../fonts/general-sans-500.woff2') format('woff2');
+  src: url('/fonts/general-sans-500.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -35,7 +42,7 @@
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('../fonts/jetbrains-mono-latin.woff2') format('woff2');
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
   font-weight: 400 500;
   font-style: normal;
   font-display: swap;
@@ -46,7 +53,7 @@
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('../fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
+  src: url('/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
   font-weight: 400 500;
   font-style: normal;
   font-display: swap;

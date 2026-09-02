@@ -12,6 +12,8 @@ export default defineConfig({
   },
   test: {
     include: ['tests/unit/**/*.test.ts'],
+    // Os testes de ponta a ponta rodam no Playwright, com o build de producao.
+    exclude: ['tests/e2e/**'],
     coverage: {
       provider: 'v8',
       include: ['lib/format.ts'],

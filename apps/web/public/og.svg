@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!--
+    Cartao de compartilhamento.
+    Mesma gramatica da pagina: fundo quase preto, headline em dois tons, label
+    mono com marcador, e a curva de juros como unica imagem. Nenhuma cor fora
+    dos tokens, e nenhuma sombra.
+
+    Em SVG e nao em PNG porque o arquivo tem 2 KB, escala sem borrar, e nao
+    precisa de ferramenta de imagem para ser regenerado. As fontes viram
+    fallback do sistema em quem renderiza o cartao, entao o texto e composto
+    com tamanhos que aguentam essa troca.
+  -->
+  <rect width="1200" height="630" fill="#0A0A0A" />
+
+  <!-- Filete superior, como o cabecalho da pagina -->
+  <line x1="0" y1="96" x2="1200" y2="96" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+
+  <text x="80" y="62" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" fill="#EDEDED">
+    Fluxo<tspan fill="#5A5A5A">, anatomia de uma dívida</tspan>
+  </text>
+
+  <!-- Label mono de secao, no padrao do design system -->
+  <text x="80" y="200" font-family="ui-monospace, monospace" font-size="18" letter-spacing="4" fill="#8A8A8A">
+    • O QUE VOCÊ DEVOLVE
+  </text>
+
+  <text x="80" y="290" font-family="ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="300" fill="#EDEDED">
+    Todo mundo sabe quanto
+  </text>
+  <text x="80" y="366" font-family="ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="300" fill="#EDEDED">
+    pega emprestado.
+  </text>
+  <text x="80" y="442" font-family="ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="300" fill="#5A5A5A">
+    Quase ninguém sabe
+  </text>
+  <text x="80" y="518" font-family="ui-sans-serif, system-ui, sans-serif" font-size="68" font-weight="300" fill="#5A5A5A">
+    quanto devolve.
+  </text>
+
+  <!-- As duas curvas, cruzando. Mesma leitura da secao 3. -->
+  <g transform="translate(760, 210)">
+    <line x1="0" y1="300" x2="360" y2="300" stroke="rgba(255,255,255,0.16)" stroke-width="1" />
+    <path d="M0 300 C 90 300, 150 140, 360 60" fill="none" stroke="#C4552F" stroke-width="4" stroke-linecap="round" />
+    <path d="M0 300 C 120 268, 220 220, 360 150" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <line x1="0" y1="566" x2="1200" y2="566" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+  <text x="80" y="600" font-family="ui-monospace, monospace" font-size="16" letter-spacing="3" fill="#5A5A5A">
+    MATERIAL EDUCATIVO • CÁLCULO DETERMINÍSTICO
+  </text>
+</svg>

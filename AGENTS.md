@@ -352,3 +352,91 @@ nome de instituição e sempre marca o resultado como material educativo.
    técnica, escolha, implemente e registre o porquê em um ADR
 5. Não instale biblioteca nova sem justificar em uma linha por que o que já
    existe no repositório não resolve
+
+---
+
+# 9. Estado do trabalho
+
+**Esta seção não é contrato. Ela é o registro de onde a implementação parou, para
+quem retomar em outra sessão.** As seções 1 a 8 acima continuam sendo a fonte de
+verdade sobre o que construir. Atualize esta seção ao fim de cada fase.
+
+**Última atualização:** 2026-09-02, ao fim da Fase 8.
+
+## O que está pronto
+
+As oito fases estão implementadas e commitadas em `main`, com CI verde.
+
+```
+pnpm lint && pnpm typecheck && pnpm test && pnpm build     tudo verde
+367 testes: 339 unitários e de contrato, 28 de ponta a ponta
+```
+
+| Pacote | Testes | Cobertura |
+|---|---|---|
+| `packages/domain` | 125 | 100% nas quatro métricas |
+| `packages/contracts` | 57 | 100% nas quatro métricas |
+| `packages/tokens` | 14 | 100% nas quatro métricas |
+| `packages/mcp-server` | 27 | acima de 90% |
+| `apps/api` | 78 | acima de 90%, exceto conexão real |
+| `apps/web` | 38 unitários mais 28 no Playwright | `lib/format.ts` acima de 90% |
+
+O Playwright roda o mesmo percurso duas vezes, com movimento e com
+`prefers-reduced-motion`, contra o build de produção.
+
+Verificações feitas rodando, e não apenas por teste:
+
+- A API responde sem banco e sem chave, e devolve os mesmos números que o front
+  calcula no navegador
+- O servidor MCP responde por JSON-RPC real sobre stdio, com os mesmos números
+- O Lighthouse mede LCP de 1,8s e CLS de 0,004 no build de produção
+
+## O que falta, em ordem de prioridade
+
+1. **Lighthouse performance está em 85, e a meta é 95.** O que sobra é custo de
+   JavaScript: TresJS, three, GSAP e Lenis entram no bundle inicial mesmo quando
+   não vão ser usados. O caminho é importá-los sob demanda, só quando `comCena`
+   for verdadeiro em `apps/web/app/pages/index.vue`. É a próxima tarefa técnica.
+2. **Capturas de tela no README.** O `apps/web` roda com
+   `pnpm --filter @fluxo/web dev`.
+3. **Deploy no Vercel e no Render.** O código está pronto. Falta publicar.
+4. **Banco Neon e ingestão do corpus.** O schema, as migrações e o script de
+   ingestão existem e nunca rodaram, porque exigem `DATABASE_URL`.
+5. **Verificação contra o Gemini de verdade.** Tudo em torno do modelo está
+   testado com dublê, mas nada foi exercitado contra o provedor.
+
+Os itens 3, 4 e 5 dependem de credenciais que só o dono do projeto pode criar.
+Não crie conta, não insira credencial, e não contorne isso: pare e reporte, como
+manda a regra 1 da seção 2.
+
+## Decisões que um agente novo precisa conhecer antes de mexer
+
+Todas estão detalhadas em `docs/adr/`. As que mais mudam o que você faria por
+padrão:
+
+- **ADR 0009.** O rotativo brasileiro dura um ciclo, não vários. A dívida de
+  cartão tem dois estágios, e o teto conta os dois somados
+- **ADR 0011.** `packages/contracts` importa `packages/domain` de propósito,
+  para o valor validado sair já marcado. Não use `.brand()` do Zod
+- **ADR 0013.** Anime apenas `transform` e `opacity`. A curva é revelada por
+  escala de recorte, e o parallax do ruído acontece dentro do shader
+- **ADR 0015.** A porta do modelo nunca lança. Falha é valor, e degradação é
+  resposta válida com `degraded: true`
+- **ADR 0017.** WebGL ausente não pode custar a narrativa. Qualquer cena nova
+  precisa passar pela mesma guarda `comCena`
+
+## Armadilhas já pisadas
+
+Coisas que custaram depuração e não vão parecer óbvias:
+
+- **O lint precisa do `dist` dos pacotes.** No CI, `pnpm --filter "./packages/*"
+  build` roda antes do lint. Sem isso, todo import de `@fluxo/domain` vira tipo
+  de erro e o lint acusa 150 falsos positivos
+- **`inject` não enxerga o próprio `provide`.** O `SceneStage` passa a cena na
+  mão para `useParallaxLayer`
+- **`dir.public` do Nuxt resolve a partir de `rootDir`, não de `srcDir`**
+- **Dependência transitiva não resolve com pnpm.** `fastify`, `@tresjs/core` e
+  outros precisaram ser declarados como dependência direta de quem os usa
+- **O `commitlint` recusa assunto começando em maiúscula**
+- **A conversão de reais para centavos nunca multiplica por cem.** Trabalhe
+  sobre os dígitos
