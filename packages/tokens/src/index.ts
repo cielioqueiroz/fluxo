@@ -21,3 +21,4 @@ export const tokens = {
 export type Tokens = typeof tokens
 
 export { color, motion, radius, space, typography }
+export { toCss } from './css.js'

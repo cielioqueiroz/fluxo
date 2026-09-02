@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { toCss } from '../src/build.js'
+import { toCss } from '../src/css.js'
 import { tokens } from '../src/index.js'
 
 describe('valores do AGENTS.md, copiados ao caractere', () => {

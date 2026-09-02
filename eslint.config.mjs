@@ -44,7 +44,16 @@ const PROIBIDO_ENTRE_APPS = {
   web: ['@fluxo/api', '**/apps/api/**'],
   api: ['@fluxo/web', '@fluxo/tokens', '**/apps/web/**'],
   mcp: ['@fluxo/web', '@fluxo/api', '@fluxo/tokens', '**/apps/**'],
+  /**
+   * `contracts` importa `domain` de proposito, para que o valor validado saia
+   * ja marcado. Ver docs/adr/0011-contracts-importa-domain.md. O que ele nao
+   * pode e conhecer aplicacao ou design system.
+   */
+  contracts: ['@fluxo/web', '@fluxo/api', '@fluxo/tokens', '**/apps/**'],
 }
+
+/** O pacote de tokens gera CSS e nao conhece nem calculo nem contrato. */
+const PROIBIDO_NOS_TOKENS = ['@fluxo/*', '**/apps/**']
 
 /** @param {readonly string[]} group @param {string} message */
 const restringir = (group, message) => ({
@@ -125,6 +134,20 @@ export default tseslint.config(
     rules: restringir(
       PROIBIDO_ENTRE_APPS.mcp,
       'packages/mcp-server so consome domain e contracts. AGENTS.md secao 3.',
+    ),
+  },
+  {
+    files: ['packages/contracts/**/*.ts'],
+    rules: restringir(
+      PROIBIDO_ENTRE_APPS.contracts,
+      'packages/contracts e a fronteira. Importa domain para marcar valores, e nao conhece aplicacao nem design system. ADR 0011.',
+    ),
+  },
+  {
+    files: ['packages/tokens/**/*.ts'],
+    rules: restringir(
+      PROIBIDO_NOS_TOKENS,
+      'packages/tokens gera CSS e nao conhece calculo, contrato nem aplicacao. AGENTS.md secao 4.',
     ),
   },
 

@@ -8,9 +8,9 @@ e compara estratégias de quitação, sempre com citação de fonte pública.
 A IA é uma camada de interpretação sobre um cálculo determinístico, nunca a
 fonte do número.
 
-> **Estado:** Fases 0 e 1 concluídas. O cálculo financeiro está pronto e
-> testado. Ainda não há interface. Este README acompanha o repositório e é
-> reescrito a cada fase.
+> **Estado:** Fases 0, 1 e 2 concluídas. O cálculo financeiro, a fronteira
+> entre front e back e o design system estão prontos e testados. Ainda não há
+> interface. Este README acompanha o repositório e é reescrito a cada fase.
 
 ## Fases
 
@@ -18,7 +18,7 @@ fonte do número.
 | ---- | -------------------------------------------------------------------------------- | --------- |
 | 0    | Monorepo, TypeScript estrito, ESLint com a fronteira do grafo, Vitest, Husky, CI | concluída |
 | 1    | `packages/domain`, todo o cálculo financeiro                                     | concluída |
-| 2    | `packages/contracts` com Zod e `packages/tokens` gerando o CSS                   | a fazer   |
+| 2    | `packages/contracts` com Zod e `packages/tokens` gerando o CSS                   | concluída |
 | 3    | `apps/web` estático, seis seções, zero animação                                  | a fazer   |
 | 4    | Movimento: Lenis, ScrollTrigger, TresJS, shader, movimento reduzido              | a fazer   |
 | 5    | `apps/api` em NestJS, Drizzle e Neon                                             | a fazer   |
@@ -26,10 +26,20 @@ fonte do número.
 | 7    | `packages/mcp-server` com três tools                                             | a fazer   |
 | 8    | Acabamento, Playwright, Lighthouse acima de 95                                   | a fazer   |
 
-## O que o domínio já faz
+## O que já existe
+
+190 testes nos três pacotes, com 100% de cobertura em linhas, ramos, funções e
+enunciados em cada um.
+
+| Pacote             | O que é                                        | Testes |
+| ------------------ | ---------------------------------------------- | ------ |
+| `@fluxo/domain`    | O cálculo financeiro inteiro. Não importa nada | 123    |
+| `@fluxo/contracts` | A fronteira entre front e back, em Zod         | 53     |
+| `@fluxo/tokens`    | A fonte única do visual, que gera `tokens.css` | 14     |
+
+### O domínio
 
 `packages/domain` não importa nada. Nem Vue, nem Nest, nem Zod, nem `node:fs`.
-São 123 testes com 100% de cobertura em linhas, ramos, funções e enunciados.
 
 | Módulo                | O que resolve                                                                                  |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
@@ -49,6 +59,24 @@ Duas descobertas mudaram o modelo durante a Fase 1, e as duas estão em ADR:
 - **O mínimo de 15% não é mais obrigatório.** Ele entra no preset marcado como
   prática de mercado, não como norma
 
+### A fronteira
+
+`packages/contracts` valida na borda e devolve o valor **já marcado**, então o
+que sai do `parse` entra no domínio sem nenhum cast. Três coisas que o schema
+impede antes de virarem problema:
+
+- O cliente manda o **nome** do preset de regulação, nunca o objeto de
+  parâmetros. Ninguém simula um teto de encargos que a lei não permite
+- A saída do modelo é recusada se uma afirmação apontar para citação
+  inexistente, ou se não houver citação nenhuma
+- Travessão na saída da IA é recusado pelo schema, não pedido no prompt
+
+### O design system
+
+`packages/tokens` é a fonte única. `build.ts` gera
+`apps/web/assets/css/tokens.css`, e o CI recusa o build se o CSS versionado
+estiver dessincronizado do TypeScript.
+
 ## Como rodar
 
 ```bash
@@ -61,12 +89,12 @@ Requer Node 24, conforme o `.nvmrc`, e pnpm 10.28.2, fixado no campo
 
 ## Onde ler
 
-| Documento                         | O que é                                                                    |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto   |
-| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                 |
-| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                      |
-| [`docs/adr/`](docs/adr/README.md) | As dez decisões de arquitetura e por que as alternativas foram descartadas |
+| Documento                         | O que é                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| [`AGENTS.md`](AGENTS.md)          | O contrato. Arquitetura, design system, regras de parallax e de contexto    |
+| [`docs/plan/`](docs/plan)         | O roadmap das oito fases e o plano de execução de cada uma                  |
+| [`docs/spec/`](docs/spec)         | A especificação de desenho do domínio                                       |
+| [`docs/adr/`](docs/adr/README.md) | As onze decisões de arquitetura e por que as alternativas foram descartadas |
 
 ## Arquitetura em uma tela
 
