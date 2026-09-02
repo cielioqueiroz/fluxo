@@ -70,12 +70,17 @@ const ultima = computed(() => props.schedule.installments[props.schedule.install
       />
 
       <g v-for="coluna in colunas" :key="coluna.key">
+        <!--
+          A parte de amortizacao usa `border-strong` e nao `bg-raised`: sobre o
+          fundo quase preto, #141414 fica praticamente invisivel, e a coluna
+          perdia justamente a metade que mostra o dinheiro voltando.
+        -->
         <rect
           :x="coluna.x"
           :y="coluna.topo"
           :width="coluna.largura"
           :height="coluna.alturaTotal"
-          fill="var(--color-bg-raised)"
+          fill="var(--color-border-strong)"
         />
         <rect
           :x="coluna.x"
@@ -142,8 +147,7 @@ const ultima = computed(() => props.schedule.installments[props.schedule.install
 }
 
 .chart__swatch--principal {
-  background: var(--color-bg-raised);
-  border: 1px solid var(--color-border-strong);
+  background: var(--color-border-strong);
 }
 
 .chart__count {
